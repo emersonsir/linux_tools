@@ -1,0 +1,4 @@
+Manifest-Version: 1.0
+Main-Class: org.cfig.jgrep.Main
+JGREP_VERSION: 1.0
+BUILD_TIME: 2015.03.03
