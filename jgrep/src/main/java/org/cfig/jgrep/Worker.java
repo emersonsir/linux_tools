@@ -91,7 +91,7 @@ public class Worker {
                 int s1 = 0;
                 while (m.find()) {//generate a user friendly output text
                     {//code block for binary files
-                        Pattern p2 = Pattern.compile("[\01\02\02\04\05\06\07\010]");
+                        Pattern p2 = Pattern.compile("[\020-\040]");
                         Matcher m2 = p2.matcher(line);
                         if (m2.find()) {
                             String txt_head2 = (recurvice ? theColor.PURPLE() + bufferName + theColor.RESET() : "");
