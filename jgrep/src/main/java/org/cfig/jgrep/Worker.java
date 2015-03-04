@@ -20,6 +20,7 @@ public class Worker {
     private boolean ignoreCase;
     private boolean useStdin;
     private AnsiColor theColor;
+    private static BinaryChecker bc;
 
     public Worker(Args inArgs) {
         this.bShowIndex = inArgs.isShowIndex();
@@ -34,6 +35,7 @@ public class Worker {
         } else {
             this.theColor = new AnsiColor();
         }
+        bc = new BinaryChecker();
     }
 
     public void run() {
@@ -83,6 +85,7 @@ public class Worker {
         try {
             String line = null;
             int lineNo = 0;
+            boolean bBinary = (null == bufferName) ? false : !bc.isTextFile(bufferName);
             while ((line = br.readLine()) != null) {
                 lineNo++;
                 Matcher m = p.matcher(line);
@@ -90,16 +93,11 @@ public class Worker {
                 String txt = "";
                 int s1 = 0;
                 while (m.find()) {//generate a user friendly output text
-                    {//code block for binary files
-                        Pattern p2 = Pattern.compile("[\020-\040]");
-                        Matcher m2 = p2.matcher(line);
-                        if (m2.find()) {
-                            String txt_head2 = (recurvice ? theColor.PURPLE() + bufferName + theColor.RESET() : "");
-                            log.info("Binary file " + txt_head2 + " matches");
-                            return;
-                        }
-                    }//code block for binary files
-
+                    //check if a file is binary data
+                    if (bBinary) {
+                        log.info("Binary file " + theColor.PURPLE() + bufferName + theColor.RESET() + " matches");
+                        return;
+                    }
                     if (bShowIndex) {
                         txt_head += "[" + m.start() + "," + m.end() + ")";
                     }

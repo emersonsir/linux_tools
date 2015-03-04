@@ -8,6 +8,7 @@ version = '1.0'
 sourceCompatibility = 1.7
 targetCompatibility = 1.7
 
+//target 'fatjar' is almost equvilent to target 'jar'
 task fatjar(type: Jar) {
     manifest {
         attributes 'Implementation-Title': 'Gradle Quickstart',
@@ -21,6 +22,18 @@ task fatjar(type: Jar) {
     with jar
 }
 
+jar() {
+    manifest {
+        attributes 'Implementation-Title': 'Gradle Quickstart',
+                   'Implementation-Version': version,
+                   'Main-Class': 'org.cfig.jgrep.Main',
+                   'JGREP_VERSION': '1.0',
+                   'BUILD_TIME': '2015.03.04'
+    }
+    from {configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }} //pack dependent jar
+    from ('src/main/resources') { include '*.so' } //add dynamically generated .so
+}
+
 dependencies {
     compile files('external_jar/slf4j-api-1.7.10.jar')
     compile files('external_jar/log4j-1.2.17.jar')
@@ -30,6 +43,14 @@ dependencies {
 //Get dependencies from Maven central repository
 repositories {
     mavenCentral()
+}
+
+uploadArchives {
+    repositories {
+       flatDir {
+           dirs 'out'
+       }
+    }
 }
 
 /*-------------------------------------------
@@ -48,6 +69,7 @@ task install_ttychecker(type:Exec) {
 /*-------------------------------------------
  *    dependency
  *------------------------------------------*/
+jar.dependsOn(install_ttychecker)
 fatjar.dependsOn(install_ttychecker)
 clean.dependsOn(clean_ttychecker)
 //task makelib(dependsOn: [libinternal])

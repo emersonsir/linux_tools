@@ -4,6 +4,14 @@ Some convenient tools for daily work
 ## jgrep
 jgrep is a 'grep' like program with java regex flavor, targeted for advanced daily regex use
 
+### quick start
+
+Suggest to add the following alias into ~/.bashrc (suppose the jar file is put at ~/.bin/)
+
+    alias jgrep='java -jar ~/.bin/jgrep.jar'
+
+Then you can call it via a convenient command:
+
 ```
 Usage: jgrep [OPTION]... PATTERN [FILE]...
 Search for PATTERN in each FILE or standard input.
