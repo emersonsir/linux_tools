@@ -21,6 +21,24 @@ public class AnsiColor {
     private static final Logger log = LoggerFactory.getLogger(AnsiColor.class);
     private static boolean consoleMode = true;
 
+    public AnsiColor(boolean consoleMode) {
+        this.consoleMode = consoleMode;
+    }
+
+    public AnsiColor() {
+        this.consoleMode = isStdoutTty();
+//        //whether stdout is connected to a terminal
+//        if (null == System.console()) {
+//            this.consoleMode = false;
+//        } else {
+//            this.consoleMode = true;
+//        }
+    }
+
+    public String nativeTest2() {
+        return "a1700b7c-c321-11e4-92f1-0021ccc95a85";
+    }
+
     static {
 //        System.loadLibrary("ttycheck");
         // Prepare temporary file
@@ -45,23 +63,12 @@ public class AnsiColor {
         }
     }
 
-    public AnsiColor(boolean consoleMode) {
-        this.consoleMode = consoleMode;
-    }
-
-    public AnsiColor() {
-        this.consoleMode = isStdoutTty();
-//        //whether stdout is connected to a terminal
-//        if (null == System.console()) {
-//            this.consoleMode = false;
-//        } else {
-//            this.consoleMode = true;
-//        }
-    }
-
     public native boolean isStdinTty();
 
     public native boolean isStdoutTty();
+
+    public native String nativeTest();
+
 
     public String RESET() {
         if (!consoleMode) {

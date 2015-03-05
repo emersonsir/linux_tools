@@ -1,13 +1,13 @@
 HEADER_DIR = \
-	$(JAVA_HOME)/include \
-	$(JAVA_HOME)/include/linux
+	-I$(JAVA_HOME)/include \
+	-I$(JAVA_HOME)/include/linux
 
 libttycheck.so: org_cfig_jgrep_AnsiColor.o
 	$(CXX) -shared -o $@ $^
 	strip --strip-all $@
 
 org_cfig_jgrep_AnsiColor.o:org_cfig_jgrep_AnsiColor.cpp
-	$(CXX) -I$(HEADER_DIR) -c -Wall -Werror -fpic $^
+	$(CXX) $(HEADER_DIR) -c -Wall -Werror -fpic $^
 
 .PHONY: clean install
 clean:

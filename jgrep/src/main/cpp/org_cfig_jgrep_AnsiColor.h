@@ -23,6 +23,14 @@ JNIEXPORT jboolean JNICALL Java_org_cfig_jgrep_AnsiColor_isStdinTty
 JNIEXPORT jboolean JNICALL Java_org_cfig_jgrep_AnsiColor_isStdoutTty
   (JNIEnv *, jobject);
 
+/*
+ * Class:     org_cfig_jgrep_AnsiColor
+ * Method:    nativeTest
+ * Signature: ()Ljava/lang/String;
+ */
+JNIEXPORT jstring JNICALL Java_org_cfig_jgrep_AnsiColor_nativeTest
+  (JNIEnv *, jobject);
+
 #ifdef __cplusplus
 }
 #endif
