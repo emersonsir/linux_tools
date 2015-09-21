@@ -1,7 +1,7 @@
 # utils
 Some convenient tools for daily work
 
-## jgrep
+## jgrep (obsolete, Now I use "ag" instead)
 jgrep is a 'grep' like program with java regex flavor, targeted for advanced daily regex use
 
 ### quick start
