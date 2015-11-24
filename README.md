@@ -10,3 +10,5 @@ I also wrote a [guide](http://cfig.github.io/2015/09/22/linux-keyboard-driver/) 
 
 ## db\_tool
 db\_tool is a wrapper tool to operate on [cscope](http://cscope.sourceforge.net) and [ctags](http://ctags.sourceforge.net/). It can manage projects and build indexes(cscope.out and tags). Then index files can be auto-loaded in vim.
+
+Documentation can be found in my [blog](http://cfig.github.io/2015/11/24/db-tool/).
