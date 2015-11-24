@@ -1,0 +1,62 @@
+#!/bin/sh
+
+PATH="/sbin:/bin:/usr/sbin:/usr/bin"
+
+NAME="fuji"
+DESC="Fujitsu Keyboard Driver"
+PIDFILE="/var/run/fuji.pid"
+
+set -e
+
+. /lib/lsb/init-functions
+
+do_start()
+{
+    echo ‘## Starting fuji module ##’
+    modprobe aziokbd
+    echo ‘## Attempting to reload fuji usbhid module ##’
+    rmmod usbhid && modprobe usbhid quirks=$quirk
+}
+
+do_stop ()
+{
+    echo "do_stop"
+}
+
+do_reload ()
+{
+    echo "do_reload"
+}
+
+case "${1}" in
+	start)
+		log_daemon_msg "Starting ${DESC}" "${NAME}"
+		do_start
+		log_end_msg ${?}
+		;;
+
+	stop)
+		log_daemon_msg "Stopping ${DESC}" "${NAME}"
+		do_stop
+		log_end_msg ${?}
+		;;
+
+	restart|force-reload)
+		log_daemon_msg "Restarting ${DESC}" "${NAME}"
+		do_stop
+		sleep 1
+		do_start
+		log_end_msg ${?}
+		;;
+
+	status)
+		status_of_proc ${DAEMON} ${NAME}
+		;;
+
+	*)
+		echo "Usage: ${0} {start|stop|restart|force-reload|status}" >&2
+		exit 1
+		;;
+esac
+
+exit 0

@@ -4,22 +4,7 @@ Some convenient tools for daily work
 ## jgrep (obsolete, Now I use "ag" instead)
 jgrep is a 'grep' like program with java regex flavor, targeted for advanced daily regex use
 
-### quick start
+### aziokbd
+modified driver for Fujitsu KH800 keyboard. Original author posted it on [Bitbucket](https://bitbucket.org/Swoogan/aziokbd).
+I also wrote a [guide](http://cfig.github.io/2015/09/22/linux-keyboard-driver/) in my blog describing how it's modified.
 
-Suggest to add the following alias into ~/.bashrc (suppose the jar file is put at ~/.bin/)
-
-    alias jgrep='java -jar ~/.bin/jgrep.jar'
-
-Then you can call it via a convenient command:
-
-```
-Usage: jgrep [OPTION]... PATTERN [FILE]...
-Search for PATTERN in each FILE or standard input.
-PATTERN is java flavored regex
-        Example: jgrep -i 'hello world' menu.c
-    -h | --help         print help
-       | --version      print version info
-    -i | --ignore-case  be case insensitive
-       | --color=on     force color on even no console detected
-    -g | --group        show group info
-```
