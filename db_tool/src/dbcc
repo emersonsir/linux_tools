@@ -1,0 +1,10 @@
+if [ "x" = "x$1" ]; then
+    db l
+else
+    if [ -d "$HOME/.proj_db/$1" ]; then
+        export SELECT_PROJECT_DB=$1
+    else
+        echo "Invalid project ID: $1"
+    fi
+fi
+

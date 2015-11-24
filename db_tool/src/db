@@ -1,0 +1,340 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+#-------------------------------------------------------------------------------
+#                                  imports 
+#-------------------------------------------------------------------------------
+import os, subprocess
+import os.path
+import sys
+import string
+from tools import *
+import platform
+
+#-------------------------------------------------------------------------------
+#                             constants & globals 
+#-------------------------------------------------------------------------------
+CURRENT_DIR = os.getcwd()
+PROJ_DIR = os.path.join(os.path.expanduser("~"),".proj_db")
+osinfo = platform.system()
+
+
+SELECT_PROJECT_DB = None #main flag
+SESSION_DIR = None
+SESSION_NAME = None
+PROJ_FILELIST = None
+#-------------------------------------------------------------------------------
+#                                 functions 
+#-------------------------------------------------------------------------------
+def listProj():
+    for session in sorted(os.listdir(PROJ_DIR)):
+        with open(os.path.join(PROJ_DIR, session, "name")) as session_name:
+            if SELECT_PROJECT_DB is not None and session == SELECT_PROJECT_DB:
+                print("%s%s - %s%s" % (Xcolors.OKGREEN, session, session_name.readlines()[0].strip(), Xcolors.ENDC))
+            else:
+                print("%s - %s" % (session, session_name.readlines()[0].strip()))
+
+def envCheck():
+    global SELECT_PROJECT_DB
+    global SESSION_DIR
+    global PROJ_FILELIST
+    global SESSION_NAME
+    SELECT_PROJECT_DB = os.getenv("SELECT_PROJECT_DB", None)
+    if SELECT_PROJECT_DB is not None:
+        SESSION_DIR = os.path.join(PROJ_DIR, SELECT_PROJECT_DB)
+        PROJ_FILELIST = os.path.join(SESSION_DIR, "projlist")
+        with open(os.path.join(PROJ_DIR, SELECT_PROJECT_DB, "name")) as session_name:
+            SESSION_NAME = session_name.readlines()[0].strip()
+    else:
+        pass
+
+def init_db(inArgv):
+    if os.path.isdir(PROJ_DIR):
+        #print("project home dir exists")
+        pass
+    else:
+        os.mkdir(PROJ_DIR)
+
+    if (len(inArgv) == 0):
+        printUsage("init_db")
+        exit(1)
+    for item in inArgv:
+        i = 1
+        subdir = ""
+        while True:
+            subdir = os.path.join(PROJ_DIR, "%s" % i)
+            if os.path.isdir(subdir):
+                i = i + 1
+                continue
+            else:
+                break
+        os.mkdir(subdir)
+        with open(os.path.join(subdir, "name"), "w") as session_name:
+            session_name.write(item)
+            print("create project [%s]" % item)
+
+def print_current_session():
+    if SELECT_PROJECT_DB is None:
+        listProj()
+    else:
+        with open(os.path.join(PROJ_DIR, SELECT_PROJECT_DB, "name")) as session_name:
+            if "Windows" == osinfo:
+                print("Current Session: %s - %s " % (SELECT_PROJECT_DB, session_name.readlines()[0].strip()))
+            elif "Linux" == osinfo:
+                print("Current Session: %s%s - %s%s " % (Xcolors.OKGREEN, SELECT_PROJECT_DB, session_name.readlines()[0].strip(), Xcolors.ENDC))
+            else:
+                raise
+
+def updateProList(indicator):
+    if ("+" == indicator):
+        theCwd = os.getcwd()
+        bFound = False
+        if os.path.isfile(PROJ_FILELIST):
+            with open(PROJ_FILELIST, "r") as fd:
+                lines = fd.readlines()
+                for line in lines:
+                    if(line.strip()==theCwd):
+                        bFound = True
+                        break;
+        if bFound:
+            print_ok("Folder already in project [%s%s%s] " % (Xcolors.OKGREEN, SESSION_NAME, Xcolors.ENDC))
+        else:
+            with open(PROJ_FILELIST, "a+") as fd:
+                fd.write(theCwd + "\n")
+                print_ok("Add folder [%s%s%s] to project [%s%s%s]" % (Xcolors.WARNING, theCwd, Xcolors.ENDC, Xcolors.OKGREEN, SESSION_NAME, Xcolors.ENDC))
+    elif ("-" == indicator):
+        theCwd = os.getcwd()
+        fd = open(PROJ_FILELIST, "r")
+        lines = fd.readlines()
+        #print(lines)
+        fd.close()
+        newlines = []
+        for line in lines:
+            if(line.find(theCwd) < 0):
+                newlines.append(line)
+            else:
+                print("Remove from project:[%s]" % line.rstrip())
+        #print(newlines)
+        fd = open(PROJ_FILELIST, "w")
+        fd.writelines(newlines)
+        fd.close()
+    else:
+        print("Must +/-")
+
+def cleanProList():
+    os.chdir(SESSION_DIR)
+    print("Cleaning ... ")
+    if "Windows" == osinfo:
+        theCmd = 'del /f /q cscope* ncscope.out tags  "%s"' % PROJ_FILELIST
+    elif "Linux" == osinfo:
+        theCmd = "rm -fr cscope.* ncscope.out tags  %s" % PROJ_FILELIST
+    else:
+        raise
+    subprocess.call(theCmd, shell=True)
+
+def folder2file(inDir=None):
+    import re
+    outFileName = os.path.join(SESSION_DIR, "cscope.files")
+    print("Searching ... \n [%s] >> [%s] ..." % (inDir, outFileName))
+    p_white_list = re.compile(".*releasetools.*")
+    p_black_list = re.compile(".*out/target.*")
+    p_plus = re.compile(".*\.(c|cpp|cc|mk|xml|aidl|idl|java|py|sh|GNUMakefile|Makefile|h|hpp|hh)$")
+    p_minus = re.compile(".*\.(git|svn).*")
+    f = open(outFileName, "a")
+    for (root, dirs, files) in os.walk(inDir):
+        for afile in files:
+            item = os.path.join(root, afile)
+            if p_white_list.match(item):
+                f.write("%s\n" % item)
+                continue
+            if p_black_list.match(item):
+                continue
+            if p_plus.match(item):
+                if p_minus.match(item):
+                    pass
+                    #print("- %s" % item)
+                else:
+                    #print("+ %s" % item)
+                    f.write("%s\n" % item)
+    f.close()
+    #theCmd = """ \
+    #    ! -wholename "*.git*" -type f -regex ".*\.c$" \
+    #-or ! -wholename "*.git*" -type f -regex ".*\.cpp$" \
+    #-or ! -wholename "*.git*" -type f -regex ".*\.cc$" \
+    #-or ! -wholename "*.git*" -type f -regex ".*\.mk$" \
+    #-or ! -wholename "*.git*" -type f -regex ".*\.xml$" \
+    #-or ! -wholename "*.git*" -type f -regex ".*\.aidl$" \
+    #-or ! -wholename "*.git*" -type f -regex ".*\.java$" \
+    #-or ! -wholename "*.git*" -type f -regex ".*\.py$" \
+    #-or ! -wholename "*.git*" -type f -regex ".*\.sh$" \
+    #-or ! -wholename "*.git*" -type f -regex ".*Makefile$" \
+    #-or ! -wholename "*.git*" -type f -regex ".*\.h$" \
+    #>> """
+
+
+def folders2file(listfile):
+    os.chdir(SESSION_DIR)
+    if "Windows" == osinfo:
+        os.system("del /f /q cscope.files*")
+    elif "Linux" == osinfo:
+        os.system("rm -f cscope.files*")
+    else:
+        raise
+
+    try:
+        with open(listfile, "r") as fd:
+            lines = fd.readlines()
+            for line in lines:
+                folder2file(line.strip())
+    except IOError as e:
+        print("I/O error ({0}):{1}".format(e.errno, e.strerror))
+        raise
+    except ValueError:
+        print("ValueError")
+        raise
+    except:
+        print("Unexpected error [%s]" % sys.exc_info()[0])
+        raise
+
+def addQuote(inFileName="cscope.files", outFileName="cscope.files.quoted"):
+    os.chdir(SESSION_DIR)
+    print("Quoting ...\n [%s] >> [%s] " % (inFileName, outFileName))
+    fd = open(inFileName, "r")
+    lines = fd.readlines()
+    #print(lines)
+    fd.close()
+    newlines = []
+    for line in lines:
+        _line = line.rstrip()
+        while os.path.islink(_line):
+            _line = os.path.realpath(_line)
+        if len(_line) > 249:
+            print("File name tooooooo long! %s" % _line)
+            continue
+        if not os.path.isfile(_line):
+            print("File invalid: %s" % _line)
+            continue
+        newlines.append('"' + _line + '"\n')
+    #print(newlines)
+    fd = open(outFileName, "w")
+    fd.writelines(newlines)
+    fd.close()
+
+    return 0
+
+def buildIndex(filename="cscope.files.quoted"):
+    os.chdir(SESSION_DIR)
+    if "Windows" == osinfo:
+        os.system("del /f /q cscope.out cscope.out*")
+        os.system("del /f tags")
+    elif "Linux" == osinfo:
+        os.system("rm -fr cscope*out")
+        os.system("rm -f tags")
+    else:
+        raise
+    print("Cscope indexing ...\n [%s] >> [cscope.* ncscope.out]" % filename)
+    theCmd = "cscope -bqC -i " + filename #-C to ignore case
+    subprocess.check_call(theCmd, shell=True)
+
+    return
+    print("Ctags indexing ...\n [%s] >> [tags]" % PROJ_FILELIST)
+    try:
+        with open(PROJ_FILELIST, "r") as fd:
+            lines = fd.readlines()
+            for line in lines:
+                theCmd = 'ctags --append=yes -R ' + line.strip() + ' -h .h.H.hh.hpp.hxx.h++.inc.def.cpp.c.java.mk'
+                subprocess.check_call(theCmd, shell=True)
+    except IOError as e:
+        print("I/O error ({0}):{1}".format(e.errno, e.strerror))
+        raise
+    except ValueError:
+        print("ValueError")
+        raise
+    except:
+        print("Unexpected error [%s]" % sys.exc_info()[0])
+        raise
+
+def printUsage(mode=0):
+    printUsage_progname = "db"
+    print("Usage:")
+    print("    %-5s init <name> : add a new project with name" % printUsage_progname)
+    if (mode == "init_db"):
+        return
+
+    print("    %-5s list   : list all sessions" % printUsage_progname)
+    print("    %-5s help   : print help" % printUsage_progname)
+    if SELECT_PROJECT_DB is None:
+        print("    %-5s <project_id> : set project_id as active" % "dbc")
+        return
+    else:
+        print("    %-5s        : go to current project config dir" % "dbgo")
+        print("    %-5s +      : add current path to project" % printUsage_progname)
+        print("    %-5s -      : remove current path from project" % printUsage_progname)
+        print("    %-5s show   : show all folders in project" % printUsage_progname)
+        print("    %-5s search : search files in project " % printUsage_progname)
+        print("    %-5s index  : index files" % printUsage_progname)
+        print("    %-5s make   : search files, and index them" % printUsage_progname)
+        print("                  equivilent to 'db search' then 'db index'")
+        print("    %-5s clean  : clean all current proejct data" % printUsage_progname)
+
+def main():
+    envCheck()
+
+    if len(sys.argv) == 1:
+        print_current_session()
+        exit(0)
+
+    if len(sys.argv) >= 2 and sys.argv[1] == "init":
+        init_db(sys.argv[2:])
+        exit(0)
+    if len(sys.argv) == 2:
+        if sys.argv[1] in ("l", "li", "lis", "list"):
+            listProj()
+            exit(0)
+        elif sys.argv[1] in ("h", "he", "hel", "help"):
+            printUsage()
+            exit(0)
+
+    if SELECT_PROJECT_DB is None:
+        printUsage(2)
+        exit(1)
+
+    if len(sys.argv) == 2:
+        if sys.argv[1] == "+":
+            updateProList("+")
+        elif sys.argv[1] == "-":
+            updateProList("-")
+        elif sys.argv[1] in ("se", "sea", "sear", "searc", "search"):
+            folders2file(PROJ_FILELIST)
+        elif sys.argv[1] in ("sh", "sho", "show"):
+            try:
+                with open(PROJ_FILELIST) as f:
+                    print("---------------List of Project Folder------------------")
+                    for item in f.readlines():
+                        print(item.strip())
+                print("-------------------------------------------------------")
+            except FileNotFoundError as e:
+                print("Project is empty")
+        elif sys.argv[1] == "index":
+            addQuote()
+            buildIndex()
+        elif sys.argv[1] == "clean":
+            cleanProList()
+        elif sys.argv[1] == "make":
+            folders2file(PROJ_FILELIST)
+            addQuote()
+            buildIndex()
+        else:
+            printUsage(3)
+    else:
+        printUsage(3)
+
+#-------------------------------------------------------------------------------
+#                                 class
+#-------------------------------------------------------------------------------
+
+#-------------------------------------------------------------------------------
+#                                main 
+#-------------------------------------------------------------------------------
+if __name__ == "__main__":
+    main()

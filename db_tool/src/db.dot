@@ -1,0 +1,85 @@
+digraph {
+    start [label="Start"]
+
+    arg_init [shape=diamond, label="db init ?"]
+    arg_list [shape=diamond, label="db list ?"]
+    arg_help [shape=diamond, label="db help ?"]
+    status_choosen [shape=diamond, label="project \nselected?"]
+    status_choosen2 [shape=diamond, label="2 project \nselected?"]
+    status_choosen4 [shape=diamond, label="4 project \nselected?"]
+    arg_plus [shape=diamond, label="db + ?"]
+    arg_minus [shape=diamond, label="db - ?"]
+    arg_show [shape=diamond, label="db show ?"]
+    arg_search[shape=diamond, label="db search ?"]
+    arg_index[shape=diamond, label="db index ?"]
+    arg_make[shape=diamond, label="db make ?"]
+    arg_clean[shape=diamond, label="db clean ?"]
+
+    do_list [shape=box, label="listProj()"]
+    do_list2 [shape=box, label="listProj(current)"]
+    do_init [shape=box, label="init_db(): create project"]
+    do_help [shape=box, label="printUsage(0)"]
+    do_help2 [shape=box, label="printUsage(2)"]
+    do_help3 [shape=box, label="printUsage(3)"]
+    do_help4 [shape=box, label="printUsage(1)"]
+    do_plus [shape=box, label="updateProList(+)"]
+    do_minus [shape=box, label="updateProList(-)"]
+    do_show [shape=box, label="showCurrentProject()"]
+    do_search [shape=box, label="folders2file(PROJ_FILELIST)"]
+    do_index [shape=box, label="buildIndex()"]
+    do_make [shape=box, label="folders2file()+buildIndex()"]
+    do_clean [shape=box, label="cleanProList()"]
+
+    start -> arg_init
+
+    arg_init -> do_init [label="Yes"]
+    arg_init -> arg_list [label="No"]
+
+    arg_list -> status_choosen2[label="Yes"]
+    arg_list -> arg_help [label="No"]
+
+    status_choosen2 -> do_list2 [label="Yes"]
+    status_choosen2 -> do_list [label="No"]
+
+    arg_help -> status_choosen4 [label="Yes"]
+    arg_help -> status_choosen [label="No"]
+
+    status_choosen4 -> do_help [label="Yes"]
+    status_choosen4 -> do_help4 [label="No"]
+
+    status_choosen -> do_help2 [label="No"]
+    status_choosen -> arg_plus [label="Yes"]
+
+    arg_plus -> do_plus [label="Yes"]
+    arg_plus -> arg_minus [label="No"]
+
+    arg_minus -> do_minus [label="Yes"]
+    arg_minus -> arg_show [label="No"]
+
+    arg_show -> do_show [label="Yes"]
+    arg_show -> arg_search [label="No"]
+
+    arg_search -> do_search [label="Yes"]
+    arg_search -> arg_index [label="No"]
+
+    arg_index -> do_index [label="Yes"]
+    arg_index -> arg_make [label="No"]
+
+    arg_make -> do_make [label="Yes"]
+    arg_make -> arg_clean [label="No"]
+
+    arg_clean -> do_clean [label="Yes"]
+    arg_clean -> do_help3 [label="No"]
+
+    { rank=same; arg_init; do_init }
+    { rank=same; arg_list; status_choosen2 }
+    { rank=same; arg_help; status_choosen4}
+    { rank=same; status_choosen; arg_plus }
+    { rank=same; arg_plus; do_plus}
+    { rank=same; arg_minus; do_minus}
+    { rank=same; arg_show; do_show}
+    { rank=same; arg_search; do_search}
+    { rank=same; arg_index; do_index}
+    { rank=same; arg_make; do_make}
+    { rank=same; arg_clean; do_clean}
+}

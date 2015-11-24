@@ -1,0 +1,3 @@
+if [ ! -z $SELECT_PROJECT_DB ]; then
+    cd ~/.proj_db/$SELECT_PROJECT_DB
+fi
