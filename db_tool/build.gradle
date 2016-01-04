@@ -1,0 +1,68 @@
+String thePrefix = System.getProperty("prefix");
+if (null == thePrefix) {
+    thePrefix = System.getProperty("user.home")
+}
+File theInstallDir = new File(thePrefix + "/.programs/bin")
+    
+task installPrepare << {
+    if (!theInstallDir.exists()) {
+        if (!theInstallDir.mkdirs()) {//fail to create
+            throw new GradleException("Fail to create install dir: " + theInstallDir.getAbsolutePath())
+        }
+    }
+}
+
+task copyFiles(type: Copy) {
+    from "src"
+    into theInstallDir.getAbsolutePath()
+    include "*"
+    fileMode 0755
+}
+
+task envSetup << {
+    def DB_MAGICCODE = "b58f0de491c311e5ac790021ccc95a85"
+    File usrBashrc = new File(System.getProperty("user.home") + "/.bashrc")
+    if (!usrBashrc.exists()) {
+        throw new GradleException(usrBashrc.getPath() + " doesn't exist")
+    }
+    ArrayList theLines = null
+    PrintWriter pw = null
+
+    theLines = new ArrayList()
+    usrBashrc.eachLine {
+        item -> theLines.add(item)
+    }
+
+    File generatedBashrc = new File("bashrc_new")
+    pw = new PrintWriter(generatedBashrc)
+    usrBashrc.eachLine { item -> 
+        if (!item.contains(DB_MAGICCODE)) {
+            pw.println(item)
+        }
+    }
+    pw.println("# for db tools, MAGIC=" + DB_MAGICCODE)
+    pw.println("source " + theInstallDir.getAbsolutePath() + "/db_envsetup #" + DB_MAGICCODE)
+    pw.close()
+    File usrBashrcBak = new File(System.getProperty("user.home") + "/.bashrc.bk")
+    usrBashrcBak.delete()
+    if (!usrBashrc.renameTo(usrBashrc)) {
+        throw new GradleException("Fail to backup " + usrBashrc.getAbsolutePath())
+    }
+    if (!generatedBashrc.renameTo(usrBashrc)) {
+        throw new GradleException("Fail to rewrite " + usrBashrc.getAbsolutePath())
+    }
+
+    PrintWriter pw2 = new PrintWriter(new File(theInstallDir.getAbsolutePath() + "/db_envsetup"))
+	pw2.println("alias dbc='. " + theInstallDir.getAbsolutePath() + "/dbcc'")
+	pw2.println("alias dbgo='. " + theInstallDir.getAbsolutePath() + "/dbgo'")
+	pw2.println("export PATH=" + theInstallDir.getAbsolutePath() + ":\$PATH")
+    pw2.close()
+}
+
+task install << {
+    println("Now exit current shell, and open shell again. You can start with db tools!")
+}
+
+install.dependsOn(envSetup)
+envSetup.dependsOn(copyFiles)
+copyFiles.dependsOn(installPrepare)

@@ -1,9 +1,0 @@
-DB_MAGICCODE=b58f0de491c311e5ac790021ccc95a85
-echo "modifying .bashrc ..."
-sed -i -e "/${DB_MAGICCODE}/d" ~/.bashrc
-
-echo "# for db tools, MAGIC=${DB_MAGICCODE}" >> ~/.bashrc
-echo "source ${tooldir}/db_envsetup #${DB_MAGICCODE}" >> ~/.bashrc
-
-echo "unlinking ${DIR}/db_firstrun ..."
-rm -f ${DIR}/db_firstrun

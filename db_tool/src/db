@@ -27,6 +27,10 @@ PROJ_FILELIST = None
 #                                 functions 
 #-------------------------------------------------------------------------------
 def listProj():
+    if not os.path.isdir(PROJ_DIR):
+        print("No project has been created. You may start with 'db init <project_name>'")
+        return
+
     for session in sorted(os.listdir(PROJ_DIR)):
         with open(os.path.join(PROJ_DIR, session, "name")) as session_name:
             if SELECT_PROJECT_DB is not None and session == SELECT_PROJECT_DB:
