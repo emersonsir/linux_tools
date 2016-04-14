@@ -1,0 +1,35 @@
+#!/usr/bin/env python3
+import subprocess
+import os.path
+from tools import *
+
+print_info("Downloading vim plugins ...")
+shell_call("wget -nv -O taglist_46.zip http://vim.sourceforge.net/scripts/download_script.php?src_id=19574")
+shell_call("wget -nv -O vim-fuzzyfinder.zip http://www.vim.org/scripts/download_script.php?src_id=13961" )
+shell_call("wget -nv -O vim-l9.zip http://www.vim.org/scripts/download_script.php?src_id=13948" )
+shell_call("wget -nv -O cscope_maps.vim http://cscope.sourceforge.net/cscope_maps.vim" )
+shell_call("wget -nv -O cvim.zip http://www.vim.org/scripts/download_script.php?src_id=18444")
+shell_call("wget -nv -O clewn-1.15.tar.gz http://downloads.sourceforge.net/project/clewn/clewn/clewn-1.15/clewn-1.15.tar.gz")
+shell_call("wget -nv -O vim-template-0.3.0.zip http://www.vim.org/scripts/download_script.php?src_id=18080")
+shell_call("wget -nv -O fugitive.zip http://www.vim.org/scripts/download_script.php?src_id=15542")
+#shell_call("wget -nv -O clang_complete.vmb http://www.vim.org/scripts/download_script.php?src_id=17048")
+shell_call("wget -nv -O calendar.vim http://www.vim.org/scripts/download_script.php?src_id=14880")
+
+VIMDIR=os.path.expanduser("~/.vim")
+prepare_dir(VIMDIR)
+
+prepare_dir(os.path.join(VIMDIR, "autoload"))
+prepare_dir(os.path.join(VIMDIR, "bundle"))
+shell_call("unzip -qo taglist_46.zip -d " + VIMDIR); os.remove("taglist_46.zip")
+shell_call("unzip -qo vim-fuzzyfinder.zip -d " + VIMDIR); os.remove("vim-fuzzyfinder.zip")
+shell_call("unzip -qo vim-l9.zip -d " + VIMDIR); os.remove("vim-l9.zip")
+shell_call("unzip -qo cvim.zip -d " + VIMDIR); os.remove("cvim.zip")
+shell_call("unzip -qo fugitive.zip -d " + VIMDIR); os.remove("fugitive.zip")
+shell_call("unzip -qo vim-template-0.3.0.zip -d " + VIMDIR); os.remove("vim-template-0.3.0.zip")
+#shell_call("vim clang_complete.vmb -c 'so %' -c 'q'"); os.remove("clang_complete.vmb")
+prepare_dir(os.path.join(VIMDIR, "template"))
+shell_call("mv cscope_maps.vim " + os.path.join(VIMDIR, "plugin"))
+shell_call("mv calendar.vim " + os.path.join(VIMDIR, "plugin"))
+shell_call("cp vim_template/template.* " + os.path.join(VIMDIR, "template/"))
+shell_call("ln -f -s " + os.path.join(os.getcwd(), "vimrc") + " " + os.path.expanduser("~/.vimrc"))
+shell_call("curl -LSso ~/.vim/autoload/pathogen.vim https://tpo.pe/pathogen.vim")

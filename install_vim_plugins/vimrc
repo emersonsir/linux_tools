@@ -1,0 +1,256 @@
+"0 - no need to repeat the settings
+syn on
+filetype plugin on
+
+"1 - General
+set mouse=a "press <SHIFT> while selecting with mouse makes vim behaves as if mouse=
+set nocompatible
+set nobackup
+set nu
+set undodir=$HOME/.vim/undo "specify undo files directory
+"set paste "turn off autoindent when you paste code
+"set nopaste "turn off the paste-mode, so that auto-indenting when you type works correctly again
+set pastetoggle=<F10>
+"set ic "ignore case
+set encoding=utf8 "enable utf8
+set hlsearch
+set incsearch
+"autocmd BufEnter * lcd %:p:h "auto change dir
+set fdm=syntax
+"set fdc=4 "foldcolumn
+set foldlevel=100 "启动时不要自动折叠代码
+set vb t_vb= "diable bells
+"set cul "highlight cursor's line
+colo desert
+"colo molokai
+"set shortmess=atI 不显示索马里儿童
+"色调改为85, 饱和度123, 亮度205
+"HSV 128, 16, 93
+"#C7EDCC
+"RGB 199, 237, 204
+
+"set max line to 80
+"set colorcolumn=100
+
+if has("cscope.files")
+    set nonu
+endif
+
+function! GetSystem()
+    if (has("win32") || has("win95") || has("win64") || has("win16"))
+        return "windows"
+    elseif has("unix")
+        return "linux"
+    elseif has("mac")
+        return "mac"
+    endif
+endfunction
+
+"http://vimdoc.sourceforge.net/htmldoc/gui.html
+if has("gui_running")
+    set lines=50 columns=84
+    "let Tlist_Auto_Open=1
+
+    if has("gui_gtk2")
+        :set guifont=Luxi\ Mono\ 12
+        "set guifont=Monospace\ 12
+    elseif has("x11") "Also for GTK 1
+        :set guifont=*-lucidatypewriter-medium-r-normal-*-*-180-*-*-m-*-*
+    elseif has("gui_win32")
+        :set guifont=Luxi_Mono:h12:cANSI
+        "set guifont=Courier_New:h14:cANSI
+    endif
+endif
+
+"to autostart NERDTree, use the following
+"autocmd VimEnter * NERDTree
+"autocmd VimEnter * wincmd p
+
+"显示tab
+"set list
+set listchars=tab:--
+set listchars=tab:->,trail:-
+set tabstop=4
+set softtabstop=4
+set shiftwidth=4
+set expandtab
+set smartindent 
+set smarttab 
+set autoindent
+"ctags
+if (has("win32") || has("win64"))
+    let Tlist_Ctags_Cmd="c:/ctags.exe"
+    "start SIS in vim
+    nnoremap <silent> <F12> :!start "Insight3" -i  +<C-R>=expand(line("."))<CR> %<CR>
+    "start vim in SIS 
+    "cmd: "C:\Program Files\Vim\vim73\gvim.exe" --remote-silent +%l %f
+else
+    let Tlist_Ctags_Cmd="/usr/bin/ctags"
+endif
+
+"taglist
+if $SELECT_PROJECT_DB != ""
+    if filereadable(expand("~/.proj_db/$SELECT_PROJECT_DB/tags"))
+        set tags=~/.proj_db/$SELECT_PROJECT_DB/tags;
+    endif
+    if filereadable(expand("$HOME/.proj_db/$SELECT_PROJECT_DB/cscope.out"))
+        " for M$ compatible
+        cd $HOME
+        cs add .proj_db/$SELECT_PROJECT_DB/cscope.out
+        cd -
+    endif
+else
+    set tags=tags; " the ';' is a must!
+endif
+let Tlist_Exit_OnlyWindow=1
+let Tlist_Use_SingleClick=1
+let Tlist_File_Fold_Auto_Close=1 "show current file tags, fold others'
+let Tlist_Use_Right_Window=1
+
+nnoremap <silent> <F2> :FufTaggedFile<CR>
+nnoremap <silent> <F3> :FufFile<CR>
+nnoremap <silent> <F4> :FufDir<CR>
+nnoremap <silent> <F5> :!python3 %<CR>
+nnoremap <silent> <F6> :!python %<CR>
+nnoremap <silent> <F7> :TlistToggle<CR>
+nmap <F8> :TagbarToggle<CR>
+"nnoremap <silent> <C-t> :tabnew<CR>
+nnoremap ,t :tabnew<CR>
+"nnoremap <silent> <C-c> :close<CR>
+nnoremap ,c :close<CR>
+nnoremap <silent> <S-Left> :tabp<CR>
+nnoremap <silent> <S-Right> :tabn<CR>
+nnoremap th :tabprevious<CR>
+nnoremap tl :tabnext<CR>
+"shortcuts
+nnoremap lcd :lcd %:p:h<CR>
+nnoremap fla :cd D:\data\ActionScript3<CR>
+nnoremap vim :cd $VIMRUNTIME<CR>
+nnoremap sc :e %:r.cpp<CR>
+nnoremap sh :e %:r.h<CR>
+
+"for action script support
+"au BufNewFile,BufRead *.as set filetype=actionscript
+"=============================================================================="
+"                                   COMMENTS                                   "
+"=============================================================================="
+"7 - cscope
+"   cscope -Rbkq , build index
+"   -R : recursive
+"   -b : exit after indexed
+"   -k : do not include /usr/include
+"   -q : accelerate indexing
+"
+"   #shell script : enable c++ / java support
+"   #!/bin/bash
+"   find . -type f -name "*.h" -o name "*.c" -o name "*.cc" -o name "*.cpp" > cscope.files
+"   find . -type f -name "*.h" -or -name "*.c" -or -name "*.cc" -or -name "*.cpp" > cscope.files
+"   cscope -bq -i cscope.files
+"   rm cscope.files
+"   ctags -R .
+"
+"   usage in vim :
+"      : cs f e main    find main in regex
+"      CTRL + ] : go to definition
+"      CTRL + t : jump back
+"      : cs f f main.c  find main.c file
+"   usage: 
+"       Ctrl+\+c : call
+"       Ctrl+\+s : find symbol
+"       CTRL-spacebar CTRL-spacebar s: Vim window will be split vertically
+"       CTRL-spacebar s:Vim window will split in two horizontally 
+"    symbol or s -- find all references to a symbol; 
+"    global or g -- find a global definition 
+"    calls or c -- find calls of the specified function 
+"    called or d -- find functions that the specified function calls 
+"    text or t -- find some text 
+"    file or f -- open a file 
+"    include or i -- find files that #include the specified file 
+"    e -- egrep
+"
+" a good site for vim learning 
+" http://easwy.com/blog/archives/vim-tips-advanced-substitute-2/
+"
+" -- ADD short-cuts for cscope --
+nmap ,s :cs find s <C-R>=expand("<cword>")<CR><CR>	
+nmap ,g :cs find g <C-R>=expand("<cword>")<CR><CR>	
+nmap ,e :cs find e <C-R>=expand("<cword>")<CR><CR>	
+nmap ,f :cs find f <C-R>=expand("<cfile>")<CR><CR>	
+nmap ,i :cs find i ^<C-R>=expand("<cfile>")<CR>$<CR>
+nmap ,d :cs find d <C-R>=expand("<cword>")<CR><CR>	
+nmap ,p :g/<C-R>=expand("<cword>")<CR>/p<CR>	
+nmap ,m :vimgrep /<C-R>=expand("<cword>")<CR>/ %<CR>:copen<CR>
+"show cscope in quickfix sub-window
+"set cscopequickfix=s-,c-,d-,i-,t-,e-
+
+"8 - taglist:
+"  1. download 'taglist'
+"  2. start vim, cd to .vim/doc , run |:helptags .| to add help files
+"  3. let Tlist_Ctags_Cmd=<full_path_of_ctags>, to set path of ctags.out
+"  4. set Tlist_Inc_Winwidth=0 , to run in a console
+"  5. restart vim, run |:Tlist| and |:help taglist|
+"
+"  Tips and Tricks:
+"  :ta main , jump to main()
+"  :ts /play , list functions with name play, using REG
+"  :C-o , jump to def
+"  :C-t , jump back to call
+"
+"  in taglist windows:
+"  <space>  : show prototype
+"  u        : update 
+"  zr       : expand taglist
+"  zc       : fold
+"  s        : show order
+"c  x        : expand window
+
+"let g:calendar_diary = "C:/Users/HOME/Documents/DATA/SIS/VIM/diary"
+"iab thedate <c-r>=strftime("=======20%y.%m.%d(%A)=======")<cr>
+
+"autocmd BufNewFile *.py 0r C:\禹业中\数据\vim\template\py.template
+"
+"9 - fugitive
+"  first, use :Gdiff
+"  When git resolve, we have 3 file: //2, file, //3
+"  so go to file, then :diffget //2 will pull //2 here
+"  so go to file, then :diffget     will pull //2 and //3
+"  so go to //2,  then :diffput file will put //2 to file
+"  then use :diffup or :diffupdate to mark resolved
+"  :Gstatus check git status
+"
+"10 - c.vim
+"  CTRL+j : jump to next <template> word
+"
+"hex edit:
+"  vim -b <file> : open file in binary mode
+"  :%!xxd        : switch to hex dump
+"  :%!xxd -r     : switch back from hex dump
+"  :r !xxd -i <file>: read a dump of <file> formatted as C source
+"
+"File Format:
+"convert from dos/unix to unix
+"   :update
+"   :e ++ff=dos
+"   :setlocal ff=unix
+"   :w
+"0x0d: CR,^M mac
+"0x0a: LF,^J,NL(newline) unix
+"0x0d.0x0a: CRLF, dos
+
+vmap gr y:vimgrep '<C-R>"' **<CR> :copen<CR>
+
+"let g:molokai_original = 1
+"set t_Co=256
+"utocmd BufNewFile,BufRead * :syntax match cfunctions "\<[a-zA-Z_][a-zA-Z_0-9]*\>[^()]*)("me=e-2 
+"utocmd BufNewFile,BufRead * :syntax match cfunctions "\<[a-zA-Z_][a-zA-Z_0-9]*\>\s*("me=e-1
+"hi cfunctions ctermfg=81
+
+"calendar.vim
+let calendar_diary="~/work/i/imemory/vim_calendar"
+
+"ag
+"https://github.com/rking/ag.vim
+"set runtimepath^=~/.vim/bundle/ag
+
+"pathogen.vim
+execute pathogen#infect()
