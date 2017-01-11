@@ -17,6 +17,7 @@ pk8_key := $(key_stem).pk8
 pfx_cert := $(key_stem).pfx
 csr_file := $(key_stem).csr
 crt_file := $(key_stem).crt
+jks_file := $(key_stem).jks
 TMP_CONFIG := $(shell mktemp -t .cnf -u)
 theSubj := '/C=$(theCountry)/ST=$(theState)/L=$(theLocation)/O=$(theOrg)/OU=$(theOrgUnit)/CN=$(theCommonName)/emailAddress=$(theEmail)'
 v3_crt := TRUE
@@ -28,9 +29,10 @@ ext_contents := \
 "subjectKeyIdentifier=hash\n"\
 "authorityKeyIdentifier=keyid:always,issuer\n"\
 "basicConstraints = CA:true\n"
-.PHONY: crt clean pk8 rsa pfx
+.PHONY: crt clean pk8 rsa pfx jks
 
 # goals
+.DEFAULT_GOAL := jks
 crt: rsa pk8
 ifdef v3_crt
 crt: $(TMP_CONFIG)
@@ -64,4 +66,7 @@ pk8: rsa
 	openssl pkcs8 -nocrypt -in $(pk8_key) -inform DER -out $(rsa_key).converted
 	@echo "$(TAG) Checking integrity ..."
 	diff $(rsa_key) $(rsa_key).converted
+	@rm -f $(rsa_key).converted
 
+jks: crt
+	keytool -importcert -file $(crt_file) -keystore $(jks_file).jks
