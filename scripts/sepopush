@@ -1,0 +1,30 @@
+#!/bin/bash
+
+pre() {
+    echo "adb: waiting for device ready ..."
+    adb wait-for-device
+}
+
+#echo $0 $*
+#tgt_dir=`dirname $1 | grep -Po '/system/.*'`
+tgt_dir=`dirname $1 | grep -Po '(?<=target/product/).*'  | grep -Po '(?<=/).*'`
+tgt_dir="/$tgt_dir"
+
+if [ ! -f "$1" ]; then
+    echo "[$1] doesn't exist"
+    exit 1
+fi
+
+pre
+
+theCmd="adb push $1 $tgt_dir"
+echo $theCmd
+
+eval $theCmd
+if [ 1 -eq $? ]; then
+    theCmd2="adb remount"
+    echo $theCmd2
+    eval $theCmd2
+    echo $theCmd
+    eval $theCmd
+fi

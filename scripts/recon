@@ -1,0 +1,56 @@
+#!/bin/bash
+
+ip='x.x.x.x'
+
+get_default_ip() {
+    read line < ~/.android/default_ip
+    ip=$line
+}
+
+result=`adb devices | grep 5555`
+if [ "x$result" = "x" ]; then
+    get_default_ip
+    echo "None, default to $ip"
+else
+    #echo "Connected Device:[$result]"
+    ip=`echo $result | cut -d':' -f1`
+    #echo "ip=[$ip]"
+fi
+
+theCmd="adb disconnect"
+echo $theCmd
+eval $theCmd
+
+theCmd="adb connect ${ip}"
+echo $theCmd
+eval $theCmd
+
+theCmd="adb root"
+echo $theCmd
+eval $theCmd
+
+theCmd="adb disconnect"
+echo $theCmd
+eval $theCmd
+
+theCmd="adb connect ${ip}"
+echo $theCmd
+eval $theCmd
+
+theCmd="adb root"
+echo $theCmd
+eval $theCmd
+
+theCmd="adb shell ls /init"
+eval $theCmd > /dev/null
+if [ $? -ne 0 ]; then
+    theCmd="adb connect ${ip}"
+    echo $theCmd
+    eval $theCmd
+fi
+
+if [ $? -ne 0 ]; then
+    theCmd="adb connect ${ip}"
+    echo $theCmd
+    eval $theCmd
+fi
