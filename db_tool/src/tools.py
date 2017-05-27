@@ -21,6 +21,8 @@ class bcolors:
 Xcolors = bcolors();
 if "Linux" == platform.system():
     pass
+elif "Darwin" == platform.system():
+    pass
 elif "Windows" == platform.system():
     Xcolors.disable()
 else:
