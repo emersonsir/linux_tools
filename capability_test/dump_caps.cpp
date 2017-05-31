@@ -6,8 +6,13 @@
 #include <cerrno>
 #include <sstream>
 #include <cstring>
+#ifdef __ANDROID__
+#define LOG_TAG "XX"
+#include <utils/Log.h>
+#else
 #define ALOGE printf
 #define ALOGI printf
+#endif
 
 void dump_caps(void) {
     pid_t pid;
