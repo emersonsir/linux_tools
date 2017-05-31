@@ -16,7 +16,6 @@ public class BinaryChecker {
     private Logger log = LoggerFactory.getLogger(this.getClass());
 
     public boolean isTextFile(String file) throws IOException {
-        StringBuilder sb = new StringBuilder();
         String ret = null;
 
         String command[] = new String[]{"file", "--brief", file};

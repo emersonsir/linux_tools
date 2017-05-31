@@ -51,7 +51,7 @@ def shell_call(theCmd, check=True):
     try:
         subprocess.check_call(theCmd, shell=True)
         print("%s %s" % (LOG_OK, theCmd))
-    except subprocess.CalledProcessError as e:
+    except subprocess.CalledProcessError:
         if check:
             print("%s %s" % (LOG_ERROR, theCmd))
             raise
