@@ -9,10 +9,8 @@ make install
 
 quirk='0x0c45:0x7603:0x0007'
 modquirk="options usbhid quirks=$quirk"
-grubquirk="usbhid.quirks=$quirk"
 
 echo $modquirk >> /etc/modprobe.d/usbhid.conf
-#echo 'aziokbd' >> /etc/modules;
 echo '## Starting module ##'
 modprobe aziokbd
 

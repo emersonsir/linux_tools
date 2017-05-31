@@ -11,7 +11,7 @@ import java.util.regex.Pattern;
  * Created by y on 2/12/15.
  */
 public class Worker {
-    Logger log = LoggerFactory.getLogger(this.getClass());
+    Logger log = LoggerFactory.getLogger(Worker.getClass());
     private boolean bShowIndex = false;
     private boolean bShowGroup = false;
     private String regex;
@@ -20,7 +20,7 @@ public class Worker {
     private boolean ignoreCase;
     private boolean useStdin;
     private AnsiColor theColor;
-    private static BinaryChecker bc;
+    private static BinaryChecker bc = new BinaryChecker();
 
     public Worker(Args inArgs) {
         this.bShowIndex = inArgs.isShowIndex();
@@ -35,7 +35,6 @@ public class Worker {
         } else {
             this.theColor = new AnsiColor();
         }
-        bc = new BinaryChecker();
     }
 
     public void run() {
