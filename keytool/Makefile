@@ -1,3 +1,12 @@
+#
+# 各种格式的转换
+#
+# PEM私钥 <— to/fro --> PKCS8私钥
+# PEM私钥 + 个人信息  —> CSR —> CRT(X509证书)
+# PEM私钥 + CRT + 密码 —> PKCS12证书(.PFX)
+# CRT + 密码 -> JKS
+# PFX + 密码 -> JKS
+
 # variabiles
 theCountry := CN
 theState := Shanghai
@@ -7,17 +16,20 @@ theOrgUnit := infra
 theCommonName := gerrit
 theEmail := webmaster@XX.com
 thePassword := somepassword
+thePfxName := androiddebugkey
 theDaysToExpire := 180
 theKeyLength := 8192
 
 # common
 key_stem := 2017key
 rsa_key := $(key_stem).rsa.pem
+rsa_pubkey := $(key_stem).rsa.pub
 pk8_key := $(key_stem).pk8
 pfx_cert := $(key_stem).pfx
 csr_file := $(key_stem).csr
 crt_file := $(key_stem).crt
 jks_file := $(key_stem).jks
+jks_file2 := $(key_stem).2.jks
 TMP_CONFIG := $(shell mktemp -t .cnf -u)
 theSubj := '/C=$(theCountry)/ST=$(theState)/L=$(theLocation)/O=$(theOrg)/OU=$(theOrgUnit)/CN=$(theCommonName)/emailAddress=$(theEmail)'
 v3_crt := TRUE
@@ -29,19 +41,19 @@ ext_contents := \
 "subjectKeyIdentifier=hash\n"\
 "authorityKeyIdentifier=keyid:always,issuer\n"\
 "basicConstraints = CA:true\n"
-.PHONY: crt clean pk8 rsa pfx jks
-
+.PHONY: all crt clean pk8 rsa pfx jks
+all: jks jks2
 # goals
-.DEFAULT_GOAL := jks
+.DEFAULT_GOAL := all
 crt: rsa pk8
 ifdef v3_crt
 crt: $(TMP_CONFIG)
 	@echo "$(TAG) Generating v3 CSR ($(csr_file)) ..."
 	openssl req -new -key $(rsa_key) -out $(csr_file) -subj $(theSubj)
+	@echo "$(TAG) Generating pub-key from priv-key ..."
+	openssl rsa -in $(rsa_key) -pubout -out $(rsa_pubkey)
 	@echo "$(TAG) Generating v3 cert ($(crt_file))..."
 	openssl x509 -req -in $(csr_file) -extfile $(TMP_CONFIG) -extensions me_v3_ca -signkey $(rsa_key) -out $(crt_file) -days $(theDaysToExpire)
-	@echo "$(TAG) Generating pkcs12 cert ($(pfx_cert))..."
-	openssl pkcs12 -export -out $(pfx_cert) -inkey $(rsa_key) -in $(crt_file) -password pass:$(thePassword)
 	@echo "$(TAG) Cleaning .."
 	rm -f $<
 else
@@ -67,6 +79,19 @@ pk8: rsa
 	@echo "$(TAG) Checking integrity ..."
 	diff $(rsa_key) $(rsa_key).converted
 	@rm -f $(rsa_key).converted
+pfx: crt
+	@echo "$(TAG) Generating pkcs12 cert ($(pfx_cert))..."
+	openssl pkcs12 -export -out $(pfx_cert) -inkey $(rsa_key) -in $(crt_file) -password pass:$(thePassword) -name $(thePfxName)
+jks: pfx
+	@echo "$(TAG) Generating JKS ($(jks_file)) from pfx ..."
+	keytool -importkeystore -deststorepass $(thePassword) -destkeystore $(jks_file) -srckeystore $(pfx_cert) -srcstoretype PKCS12 -srcstorepass $(thePassword)
+jks2: crt
+	@echo "$(TAG) Generating JKS ($(jks_file2)) from crt ..."
+	keytool -importcert -file $(crt_file) -deststorepass $(thePassword) -srcstorepass $(thePassword) -keystore $(jks_file2)
 
-jks: crt
-	keytool -importcert -file $(crt_file) -keystore $(jks_file).jks
+#查看keystore内容
+check: |$(jks_file)
+check: |$(jks_file2)
+check:
+	keytool -list -v -deststorepass $(thePassword) -keystore $(jks_file)
+	keytool -list -v -deststorepass $(thePassword) -keystore $(jks_file2)
